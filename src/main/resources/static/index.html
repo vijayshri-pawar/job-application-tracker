@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Application Tracker</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ================= Login / sign up ================= -->
+  <div id="authScreen" class="auth-screen" hidden>
+    <div class="auth-card">
+      <h1 class="auth-title">Job Application Tracker</h1>
+      <p class="auth-subtitle">Track every application, interview and offer in one place.</p>
+
+      <div class="auth-tabs" role="tablist">
+        <button type="button" id="loginTab" class="auth-tab active" role="tab">Log in</button>
+        <button type="button" id="registerTab" class="auth-tab" role="tab">Sign up</button>
+      </div>
+
+      <p id="authError" class="form-error" hidden></p>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="loginEmail" autocomplete="email" required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="loginPassword" autocomplete="current-password" required />
+        </label>
+        <button type="submit" class="primary-btn full-width">Log in</button>
+      </form>
+
+      <form id="registerForm" class="auth-form" novalidate hidden>
+        <label class="field">
+          <span>Name</span>
+          <input type="text" id="registerName" autocomplete="name" required />
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="registerEmail" autocomplete="email" required />
+        </label>
+        <label class="field">
+          <span>Password <em>(at least 8 characters)</em></span>
+          <input type="password" id="registerPassword" autocomplete="new-password" minlength="8" required />
+        </label>
+        <button type="submit" class="primary-btn full-width">Create account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= Main app ================= -->
+  <div id="appScreen" hidden>
+    <header class="app-header">
+      <h1>Job Application Tracker</h1>
+      <nav class="header-actions">
+        <button id="addBtn" class="header-btn primary" type="button">+ Add application</button>
+        <button id="companiesBtn" class="header-btn" type="button">Companies</button>
+        <button id="accountBtn" class="header-btn" type="button"><span id="userName">Account</span></button>
+        <button id="logoutBtn" class="header-btn" type="button">Log out</button>
+      </nav>
+    </header>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <p class="stat-label">Total applied</p>
+        <p class="stat-value" id="statTotal">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Interviews</p>
+        <p class="stat-value" id="statInterview">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Offers</p>
+        <p class="stat-value" id="statOffer">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Response rate</p>
+        <p class="stat-value" id="statResponseRate">0%</p>
+      </div>
+    </div>
+
+    <main>
+      <!-- Account panel -->
+      <section id="accountPanel" class="form-card" hidden>
+        <div class="panel-head">
+          <h2>My account</h2>
+          <button type="button" class="close-btn" data-close="accountPanel" aria-label="Close">✕</button>
+        </div>
+
+        <div class="panel-grid">
+          <form id="profileForm" novalidate>
+            <h3>Profile</h3>
+            <p id="profileError" class="form-error" hidden></p>
+            <label class="field">
+              <span>Name</span>
+              <input type="text" id="profileName" autocomplete="name" required />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input type="email" id="profileEmail" autocomplete="email" required />
+            </label>
+            <button type="submit" class="primary-btn">Save profile</button>
+          </form>
+
+          <form id="passwordForm" novalidate>
+            <h3>Change password</h3>
+            <p id="passwordError" class="form-error" hidden></p>
+            <label class="field">
+              <span>Current password</span>
+              <input type="password" id="currentPassword" autocomplete="current-password" required />
+            </label>
+            <label class="field">
+              <span>New password <em>(at least 8 characters)</em></span>
+              <input type="password" id="newPassword" autocomplete="new-password" minlength="8" required />
+            </label>
+            <label class="field">
+              <span>Confirm new password</span>
+              <input type="password" id="confirmPassword" autocomplete="new-password" required />
+            </label>
+            <button type="submit" class="primary-btn">Change password</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Companies panel -->
+      <section id="companiesPanel" class="form-card" hidden>
+        <div class="panel-head">
+          <h2>Companies</h2>
+          <button type="button" class="close-btn" data-close="companiesPanel" aria-label="Close">✕</button>
+        </div>
+
+        <p id="companyError" class="form-error" hidden></p>
+        <form id="companyForm" class="company-form" novalidate>
+          <input type="text" id="companyName" placeholder="Company name" aria-label="Company name" required />
+          <input type="text" id="companyIndustry" placeholder="Industry (optional)" aria-label="Industry" />
+          <input type="url" id="companyWebsite" placeholder="Website (optional, https://...)" aria-label="Website" />
+          <button type="button" id="companyCancelBtn" class="secondary-btn" hidden>Cancel</button>
+          <button type="submit" id="companySubmitBtn" class="primary-btn">Add company</button>
+        </form>
+
+        <div id="companyList" class="company-list"></div>
+      </section>
+
+      <!-- Add / edit application -->
+      <section id="addForm" class="form-card" hidden>
+        <div class="panel-head">
+          <h2 id="formTitle">Add application</h2>
+          <button type="button" class="close-btn" data-close="addForm" aria-label="Close">✕</button>
+        </div>
+        <p id="formError" class="form-error" hidden></p>
+
+        <form id="applicationForm" novalidate>
+          <div class="form-grid">
+            <label class="field">
+              <span>Company</span>
+              <select id="companySelect" required>
+                <option value="">Select company</option>
+                <option value="__new__">+ Add new company</option>
+              </select>
+            </label>
+
+            <label class="field" id="newCompanyField" hidden>
+              <span>New company name</span>
+              <input type="text" id="newCompanyName" placeholder="e.g. Infosys" autocomplete="organization" />
+            </label>
+
+            <label class="field">
+              <span>Role</span>
+              <input type="text" id="role" placeholder="e.g. Java Developer" autocomplete="off" required />
+            </label>
+
+            <label class="field">
+              <span>Applied on</span>
+              <input type="date" id="dateApplied" required />
+            </label>
+
+            <label class="field">
+              <span>Status</span>
+              <select id="status">
+                <option value="Applied">Applied</option>
+                <option value="Interview">Interview</option>
+                <option value="Offer">Offer</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Job link <em>(optional)</em></span>
+              <input type="url" id="jobLink" placeholder="https://..." autocomplete="url" />
+            </label>
+
+            <label class="field">
+              <span>Location <em>(optional)</em></span>
+              <input type="text" id="location" placeholder="e.g. Pune" autocomplete="address-level2" />
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancelBtn" class="secondary-btn">Cancel</button>
+            <button type="submit" id="submitBtn" class="primary-btn">Add application</button>
+          </div>
+        </form>
+      </section>
+
+      <div class="controls-bar">
+        <input type="search" id="searchInput" placeholder="Search company or role" aria-label="Search company or role" />
+        <select id="statusFilter" aria-label="Filter by status">
+          <option value="All">All status</option>
+          <option value="Applied">Applied</option>
+          <option value="Interview">Interview</option>
+          <option value="Offer">Offer</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <select id="sortBy" aria-label="Sort">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </div>
+
+      <div class="view-toggle">
+        <button id="listViewBtn" class="active" type="button">List view</button>
+        <button id="boardViewBtn" type="button">Board view</button>
+      </div>
+
+      <section id="applicationsList" class="applications-grid"></section>
+
+      <section id="boardView" class="board-container" hidden>
+        <div class="board-column">
+          <h3>Applied</h3>
+          <div class="column-cards" data-status="Applied"></div>
+        </div>
+        <div class="board-column">
+          <h3>Interview</h3>
+          <div class="column-cards" data-status="Interview"></div>
+        </div>
+        <div class="board-column">
+          <h3>Offer</h3>
+          <div class="column-cards" data-status="Offer"></div>
+        </div>
+        <div class="board-column">
+          <h3>Rejected</h3>
+          <div class="column-cards" data-status="Rejected"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
